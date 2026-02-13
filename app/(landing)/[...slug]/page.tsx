@@ -6,16 +6,12 @@ import { notFound } from "next/navigation";
 export default async function LandingPage({
   params,
 }: {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  
-  // Pegar o primeiro segmento da URL como slug
-  const landingSlug = slug?.[0];
 
-  if (!landingSlug) {
-    notFound();
-  }
+  // Pegar o primeiro segmento da URL como slug
+  const landingSlug = slug[0];
 
   // Buscar landing page no banco
   const landingPage = await prisma.landingPage.findUnique({
@@ -40,16 +36,10 @@ export default async function LandingPage({
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const landingSlug = slug?.[0];
-
-  if (!landingSlug) {
-    return {
-      title: "Not Found",
-    };
-  }
+  const landingSlug = slug[0];
 
   const landingPage = await prisma.landingPage.findUnique({
     where: { slug: landingSlug },
