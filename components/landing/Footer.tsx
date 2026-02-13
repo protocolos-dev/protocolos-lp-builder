@@ -101,7 +101,7 @@ export function Footer({
         <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
           <p>
             {copyright ||
-              `© ${new Date().getFullYear()} ${companyName}. Todos os direitos reservados.`}
+              `© ${new Date().getFullYear()} ${companyName}. All rights reserved.`}
           </p>
         </div>
       </div>

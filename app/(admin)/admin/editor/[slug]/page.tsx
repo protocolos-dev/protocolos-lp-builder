@@ -54,7 +54,7 @@ export default function EditorPage({
       })
       .catch((error) => {
         console.error("Error loading landing page:", error);
-        alert("Erro ao carregar landing page");
+        alert("Error loading landing page");
         router.push("/admin");
       });
   }, [slug, isNew, router]);
@@ -64,13 +64,13 @@ export default function EditorPage({
 
     try {
       if (isNew) {
-        // Criar nova landing page
-        const title = prompt("Título da landing page:");
-        const newSlug = prompt("Slug (subdomínio):");
-        const checkoutUrl = prompt("URL de checkout (opcional):");
+        // Create new landing page
+        const title = prompt("Landing page title:");
+        const newSlug = prompt("Slug (subdomain):");
+        const checkoutUrl = prompt("Checkout URL (optional):");
 
         if (!title || !newSlug) {
-          alert("Título e slug são obrigatórios");
+          alert("Title and slug are required");
           setSaving(false);
           return;
         }
@@ -91,10 +91,10 @@ export default function EditorPage({
           throw new Error(error.error || "Failed to create landing page");
         }
 
-        alert("Landing page criada com sucesso!");
+        alert("Landing page created successfully!");
         router.push("/admin");
       } else {
-        // Atualizar landing page existente
+        // Update existing landing page
         const response = await fetch(`/api/landing-pages/${slug}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -105,11 +105,11 @@ export default function EditorPage({
           throw new Error("Failed to update landing page");
         }
 
-        alert("Landing page atualizada com sucesso!");
+        alert("Landing page updated successfully!");
       }
     } catch (error) {
       console.error("Error saving:", error);
-      alert(`Erro ao salvar: ${error}`);
+      alert(`Error while saving: ${error}`);
     } finally {
       setSaving(false);
     }
@@ -118,7 +118,7 @@ export default function EditorPage({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Carregando...</div>
+        <div className="text-xl text-gray-600">Loading...</div>
       </div>
     );
   }
@@ -132,7 +132,7 @@ export default function EditorPage({
       />
       {saving && (
         <div className="fixed top-4 right-4 bg-purple-600 text-white px-6 py-3 rounded-lg shadow-lg">
-          Salvando...
+          Saving...
         </div>
       )}
     </div>
