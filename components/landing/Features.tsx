@@ -1,12 +1,10 @@
-import { ComponentProps } from "@measured/puck";
-
 export interface Feature {
   icon: string;
   title: string;
   description: string;
 }
 
-export interface FeaturesProps extends ComponentProps {
+export interface FeaturesProps {
   title: string;
   subtitle?: string;
   features: Feature[];

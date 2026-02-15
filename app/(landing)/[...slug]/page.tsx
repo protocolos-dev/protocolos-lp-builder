@@ -1,6 +1,6 @@
 import { Render } from "@measured/puck";
 import { puckConfig } from "@/lib/puck-config";
-import { prisma } from "@/lib/db";
+import { getSupabaseClient } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 
 export default async function LandingPage({
@@ -14,16 +14,19 @@ export default async function LandingPage({
   const landingSlug = slug[0];
 
   // Buscar landing page no banco
-  const landingPage = await prisma.landingPage.findUnique({
-    where: { slug: landingSlug },
-  });
+  const supabase = await getSupabaseClient();
+  const { data: landingPage, error } = await supabase
+    .from('landing_pages')
+    .select('*')
+    .eq('slug', landingSlug)
+    .single();
 
-  if (!landingPage) {
+  if (error || !landingPage) {
     notFound();
   }
 
-  // Parse do JSON data
-  const data = JSON.parse(landingPage.data);
+  // JSONB auto-parses, no need for JSON.parse
+  const data = landingPage.data as any;
 
   return (
     <div>
@@ -41,11 +44,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const landingSlug = slug[0];
 
-  const landingPage = await prisma.landingPage.findUnique({
-    where: { slug: landingSlug },
-  });
+  const supabase = await getSupabaseClient();
+  const { data: landingPage, error } = await supabase
+    .from('landing_pages')
+    .select('*')
+    .eq('slug', landingSlug)
+    .single();
 
-  if (!landingPage) {
+  if (error || !landingPage) {
     return {
       title: "Not Found",
     };

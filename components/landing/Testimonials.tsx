@@ -1,5 +1,3 @@
-import { ComponentProps } from "@measured/puck";
-
 export interface Testimonial {
   quote: string;
   author: string;
@@ -7,7 +5,7 @@ export interface Testimonial {
   avatar?: string;
 }
 
-export interface TestimonialsProps extends ComponentProps {
+export interface TestimonialsProps {
   title: string;
   subtitle?: string;
   testimonials: Testimonial[];

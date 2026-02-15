@@ -1,5 +1,3 @@
-import { ComponentProps } from "@measured/puck";
-
 export interface PricingTier {
   name: string;
   price: string;
@@ -10,7 +8,7 @@ export interface PricingTier {
   highlighted?: boolean;
 }
 
-export interface PricingProps extends ComponentProps {
+export interface PricingProps {
   title: string;
   subtitle?: string;
   tiers: PricingTier[];

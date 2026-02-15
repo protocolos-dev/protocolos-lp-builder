@@ -1,6 +1,4 @@
-import { ComponentProps } from "@measured/puck";
-
-export interface HeroProps extends ComponentProps {
+export interface HeroProps {
   title: string;
   subtitle: string;
   ctaText: string;

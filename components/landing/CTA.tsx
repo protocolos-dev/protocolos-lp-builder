@@ -1,6 +1,4 @@
-import { ComponentProps } from "@measured/puck";
-
-export interface CTAProps extends ComponentProps {
+export interface CTAProps {
   title: string;
   description: string;
   buttonText: string;

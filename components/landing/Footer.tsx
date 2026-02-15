@@ -1,5 +1,3 @@
-import { ComponentProps } from "@measured/puck";
-
 export interface FooterLink {
   label: string;
   url: string;
@@ -10,7 +8,7 @@ export interface FooterColumn {
   links: FooterLink[];
 }
 
-export interface FooterProps extends ComponentProps {
+export interface FooterProps {
   companyName: string;
   description?: string;
   columns: FooterColumn[];

@@ -31,7 +31,7 @@ export const puckConfig: Config = {
         ctaUrl: "#checkout",
         align: "center",
       },
-      render: Hero,
+      render: Hero as any,
     },
     Features: {
       fields: {
@@ -76,7 +76,7 @@ export const puckConfig: Config = {
         ],
         columns: 3,
       },
-      render: Features,
+      render: Features as any,
     },
     Pricing: {
       fields: {
@@ -133,7 +133,7 @@ export const puckConfig: Config = {
           },
         ],
       },
-      render: Pricing,
+      render: Pricing as any,
     },
     CTA: {
       fields: {
@@ -165,7 +165,7 @@ export const puckConfig: Config = {
         variant: "primary",
         size: "normal",
       },
-      render: CTA,
+      render: CTA as any,
     },
     Testimonials: {
       fields: {
@@ -202,7 +202,7 @@ export const puckConfig: Config = {
           },
         ],
       },
-      render: Testimonials,
+      render: Testimonials as any,
     },
     Footer: {
       fields: {
@@ -260,7 +260,7 @@ export const puckConfig: Config = {
         ],
         socialLinks: {},
       },
-      render: Footer,
+      render: Footer as any,
     },
   },
 };

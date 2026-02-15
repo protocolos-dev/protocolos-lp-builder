@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getSupabaseClient, transformLandingPage } from "@/lib/supabase";
 
 // GET /api/landing-pages/[slug] - Buscar landing page por slug
 export async function GET(
@@ -8,23 +8,26 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    
-    const landingPage = await prisma.landingPage.findUnique({
-      where: { slug },
-    });
+    const supabase = await getSupabaseClient();
 
-    if (!landingPage) {
-      return NextResponse.json(
-        { error: "Landing page not found" },
-        { status: 404 }
-      );
+    const { data: landingPage, error } = await supabase
+      .from('landing_pages')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // Not found
+        return NextResponse.json(
+          { error: "Landing page not found" },
+          { status: 404 }
+        );
+      }
+      throw error;
     }
 
-    // Parse o JSON data antes de retornar
-    return NextResponse.json({
-      ...landingPage,
-      data: JSON.parse(landingPage.data),
-    });
+    // JSONB auto-parses, no need for JSON.parse
+    return NextResponse.json(transformLandingPage(landingPage));
   } catch (error) {
     console.error("Error fetching landing page:", error);
     return NextResponse.json(
@@ -44,16 +47,31 @@ export async function PUT(
     const body = await request.json();
     const { title, data, checkoutUrl } = body;
 
-    const landingPage = await prisma.landingPage.update({
-      where: { slug },
-      data: {
-        ...(title && { title }),
-        ...(data && { data: JSON.stringify(data) }),
-        ...(checkoutUrl !== undefined && { checkoutUrl }),
-      },
-    });
+    const supabase = await getSupabaseClient();
 
-    return NextResponse.json(landingPage);
+    const updateData: any = {};
+    if (title) updateData.title = title;
+    if (data) updateData.data = data; // No JSON.stringify
+    if (checkoutUrl !== undefined) updateData.checkout_url = checkoutUrl;
+
+    const { data: landingPage, error } = await supabase
+      .from('landing_pages')
+      .update(updateData)
+      .eq('slug', slug)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // Not found
+        return NextResponse.json(
+          { error: "Landing page not found" },
+          { status: 404 }
+        );
+      }
+      throw error;
+    }
+
+    return NextResponse.json(transformLandingPage(landingPage));
   } catch (error) {
     console.error("Error updating landing page:", error);
     return NextResponse.json(
@@ -70,10 +88,22 @@ export async function DELETE(
 ) {
   try {
     const { slug } = await params;
+    const supabase = await getSupabaseClient();
 
-    await prisma.landingPage.delete({
-      where: { slug },
-    });
+    const { error } = await supabase
+      .from('landing_pages')
+      .delete()
+      .eq('slug', slug);
+
+    if (error) {
+      if (error.code === 'PGRST116') { // Not found
+        return NextResponse.json(
+          { error: "Landing page not found" },
+          { status: 404 }
+        );
+      }
+      throw error;
+    }
 
     return NextResponse.json({ message: "Landing page deleted successfully" });
   } catch (error) {

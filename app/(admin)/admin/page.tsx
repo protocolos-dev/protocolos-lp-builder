@@ -1,10 +1,18 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { getSupabaseClient, transformLandingPage } from "@/lib/supabase";
 
 export default async function AdminPage() {
-  const landingPages = await prisma.landingPage.findMany({
-    orderBy: { updatedAt: "desc" },
-  });
+  const supabase = await getSupabaseClient();
+  const { data, error } = await supabase
+    .from('landing_pages')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const landingPages = data.map(transformLandingPage);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
