@@ -4,58 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a landing page builder MVP that allows users to create and manage landing pages using a visual drag-and-drop editor powered by Puck. Each landing page can be served on its own subdomain and includes pre-built customizable components. The project is primarily in Portuguese (Brazilian).
+Landing page builder MVP where users create and manage landing pages using a visual drag-and-drop editor powered by Puck. Each landing page can be served on its own subdomain. The project is in Brazilian Portuguese.
 
-**Tech Stack:**
-- Next.js 16 with App Router
-- React 19
-- TypeScript
-- Tailwind CSS v4
-- Puck (visual page builder)
-- Supabase (PostgreSQL database)
-- Framer Motion (animations)
+**Tech Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS v4 · Puck (page builder) · Supabase (PostgreSQL) · Framer Motion
 
 ## Development Commands
 
 ```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm build
-
-# Start production server
-npm start
-
-# Lint code
-npm run lint
+npm install       # Install dependencies
+npm run dev       # Run development server
+npm run build     # Build for production
+npm start         # Start production server
+npm run lint      # Lint code
 ```
 
 **Access Points:**
-- Home: http://localhost:3000
-- Admin Panel: http://localhost:3000/admin
-- Landing Page Editor: http://localhost:3000/admin/editor/[slug]
-- Public Landing Page: http://localhost:3000/[slug]
+- Admin Panel: `http://localhost:3000/admin`
+- Editor: `http://localhost:3000/admin/editor/[slug]` (`slug=new` for new pages)
+- Public page: `http://localhost:3000/[slug]`
 
 ## Database Setup
 
-This project uses Supabase (PostgreSQL) and was recently migrated from Prisma/SQLite. Database migrations are manual SQL files in the `migrations/` folder.
+Uses Supabase (PostgreSQL). Migrations are manual SQL files in `migrations/`.
 
-**Apply Migrations:**
-
-1. Via Supabase SQL Editor (Recommended):
-   - Navigate to Supabase project SQL Editor
-   - Copy migration file contents
-   - Paste and run in editor
-
-2. Via Supabase CLI:
-   ```bash
-   npx supabase login
-   npx supabase db push
-   ```
+**Apply via Supabase SQL Editor** (recommended): copy and run migration file contents.
 
 **Environment Variables:**
 ```bash
@@ -67,171 +39,102 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_publishable_key
 
 ### App Structure
 
-The project uses Next.js App Router with route groups for organization:
-
-- `app/(landing)/[...slug]/` - Public landing page renderer (uses catch-all routes)
-- `app/(admin)/admin/` - Admin panel for listing/managing landing pages
-- `app/(admin)/admin/editor/[slug]/` - Puck visual editor interface
-- `app/api/landing-pages/` - RESTful API for CRUD operations
+```
+app/
+  (admin)/admin/              # Landing page listing dashboard
+  (admin)/admin/editor/[slug] # Puck visual editor
+  (landing)/[...slug]/        # Public landing page renderer (catch-all)
+  api/landing-pages/          # CRUD API routes
+components/
+  landing/                    # 17 Puck component modules
+  admin/                      # Editor-specific UI (PublishDialog, etc.)
+lib/
+  puck-config.ts              # All Puck component definitions
+  supabase.ts                 # Supabase client factory + transformLandingPage()
+utils/supabase/
+  server.ts / client.ts / middleware.ts  # Context-specific Supabase clients
+types/
+  supabase.ts                 # Auto-generated DB types
+  landing-page.ts             # Frontend TypeScript interfaces
+migrations/                   # Manual SQL migration files
+```
 
 ### Subdomain Routing
 
-The `middleware.ts` file handles subdomain-to-slug mapping. When a request comes in on a subdomain (e.g., `produto.exemplo.com`), the middleware rewrites the URL to `/produto`, which is then handled by the catch-all route.
+`middleware.ts` rewrites subdomain requests to slug paths: `produto.exemplo.com` → `/produto`, handled by the catch-all route. `/admin` and `/api` paths are excluded.
 
-**Local Subdomain Testing:**
-Edit `/etc/hosts`:
+**Local subdomain testing** — add to `/etc/hosts`:
 ```
 127.0.0.1 produto.localhost
-127.0.0.1 servico.localhost
 ```
-Then access: `http://produto.localhost:3000`
+Then access `http://produto.localhost:3000`.
 
-### Puck Configuration
+### Puck Configuration (`lib/puck-config.ts`)
 
-The core of the application is `lib/puck-config.ts`, which defines 6 landing page components:
+Defines 17 landing page components across two categories:
 
-1. **Hero** - Header section with title, subtitle, CTA, background image
-2. **Features** - Grid of features with icons, configurable columns (2-4)
-3. **Pricing** - Pricing tiers with features, CTA buttons, highlight option
-4. **CTA** - Call-to-action section with variants (primary, secondary, gradient)
-5. **Testimonials** - Customer testimonials with quotes, authors, roles
-6. **Footer** - Multi-column footer with social links
+**Specialized sales-page sections** (opinionated copy defaults targeting health/supplement niche):
+`HeroSection`, `ProblemSection`, `EnemySection`, `StorySection`, `MechanismSection`, `ProofSection`, `OfferSection`, `GuaranteeSection`, `FAQSection`, `FinalCTASection`, `StickyCTA`
 
-Each component in puck-config.ts defines:
-- `fields` - Editable properties in the Puck editor
-- `defaultProps` - Default values when component is added
-- `render` - The React component to render
+**Generic reusable components:**
+`Hero`, `Features`, `Pricing`, `CTA`, `Testimonials`, `Footer`
+
+Each component entry has `fields` (Puck editor controls), `defaultProps`, and `render` (the React component). React components live in `components/landing/`.
 
 ### Data Model
 
-**Landing Pages Table** (`landing_pages`):
-- `id` (UUID) - Primary key
-- `slug` (TEXT, unique) - URL-friendly identifier, used as subdomain
-- `title` (TEXT) - Page title for SEO and display
-- `data` (JSONB) - Puck editor data stored as JSON
-- `checkout_url` (TEXT, nullable) - Optional external checkout/payment URL
-- `created_at` (TIMESTAMPTZ) - Auto-set on creation
-- `updated_at` (TIMESTAMPTZ) - Auto-updated via trigger
+**`landing_pages` table:**
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID | PK, auto-generated |
+| `slug` | TEXT | Unique, used as subdomain |
+| `title` | TEXT | SEO title |
+| `data` | JSONB | Full Puck editor state |
+| `checkout_url` | TEXT | Optional payment URL |
+| `created_at` / `updated_at` | TIMESTAMPTZ | `updated_at` managed by DB trigger |
 
-**Naming Convention:**
-- Database columns use `snake_case` (e.g., `checkout_url`, `created_at`)
-- API/Frontend use `camelCase` (e.g., `checkoutUrl`, `createdAt`)
-- Transformation happens in `lib/supabase.ts` via `transformLandingPage()`
+**Naming convention:** DB uses `snake_case`; API/frontend uses `camelCase`. Conversion happens in `lib/supabase.ts` via `transformLandingPage()`.
 
 ### API Routes
 
-**GET /api/landing-pages**
-- Lists all landing pages, ordered by `updated_at` DESC
-- Returns array of transformed landing page objects
-
-**POST /api/landing-pages**
-- Creates new landing page
-- Required: `slug`, `title`, `data`
-- Optional: `checkoutUrl`
-- Returns 409 if slug already exists (unique constraint)
-
-**GET /api/landing-pages/[slug]**
-- Fetches single landing page by slug
-- Returns 404 if not found
-
-**PUT /api/landing-pages/[slug]**
-- Updates existing landing page
-- Can update: `title`, `data`, `checkoutUrl`
-- Returns 404 if not found
-
-**DELETE /api/landing-pages/[slug]**
-- Deletes landing page by slug
-- Returns 404 if not found
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/api/landing-pages` | All pages, ordered by `updated_at` DESC |
+| POST | `/api/landing-pages` | Required: `slug`, `title`, `data`. Optional: `checkoutUrl`. Returns 409 on duplicate slug |
+| GET | `/api/landing-pages/[slug]` | Single page, 404 if not found |
+| PUT | `/api/landing-pages/[slug]` | Partial update: `title`, `data`, `checkoutUrl` |
+| DELETE | `/api/landing-pages/[slug]` | Hard delete |
 
 ### Supabase Integration
 
-The project uses `@supabase/ssr` for server-side Supabase client creation. Key files:
+Always use `getSupabaseClient()` from `lib/supabase.ts` — do not instantiate clients directly in route handlers.
 
-- `utils/supabase/server.ts` - Server component client factory
-- `utils/supabase/client.ts` - Client component client factory
-- `utils/supabase/middleware.ts` - Middleware client factory
-- `lib/supabase.ts` - Helper functions and type-safe wrappers
-- `types/supabase.ts` - Auto-generated database types
-
-**Getting Supabase Client:**
 ```typescript
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseClient, transformLandingPage } from '@/lib/supabase';
 
 const supabase = await getSupabaseClient();
-const { data, error } = await supabase.from('landing_pages').select('*');
+const { data, error } = await supabase.from('landing_pages').select('*').eq('slug', slug).single();
+return transformLandingPage(data);
 ```
 
-**Type-Safe Helpers:**
-```typescript
-import { LandingPage, transformLandingPage } from '@/lib/supabase';
-
-const dbRow: LandingPage = /* ... */;
-const apiResponse = transformLandingPage(dbRow); // snake_case → camelCase
-```
-
-## Important Notes
-
-1. **Puck Data Storage**: Landing page layouts are stored as JSONB in the `data` column. This includes the component tree, props, and layout structure.
-
-2. **No Authentication Yet**: The admin panel currently has no authentication. This is marked as a post-MVP feature.
-
-3. **No Test Suite**: There are currently no automated tests in the project.
-
-4. **Row Level Security**: RLS is enabled on the `landing_pages` table but currently has a permissive policy allowing all operations. This should be tightened when authentication is added.
-
-5. **Migration from Prisma**: The project was recently migrated from Prisma/SQLite to Supabase. Old Prisma files have been deleted.
-
-6. **Portuguese Context**: Many comments, README sections, and default content are in Brazilian Portuguese. Maintain this language preference when adding new features unless explicitly requested otherwise.
+Use `utils/supabase/client.ts` only in `"use client"` components.
 
 ## Adding New Puck Components
 
-To add a new landing page component:
+1. Create React component in `components/landing/`
+2. Add entry to `lib/puck-config.ts` with `fields`, `defaultProps`, and `render`
 
-1. Create the React component in `components/landing/`
-2. Define component props interface
-3. Add component configuration to `lib/puck-config.ts`:
-   - Define `fields` for editable properties
-   - Set `defaultProps` with sensible defaults
-   - Reference the component in `render`
-4. The component will automatically appear in the Puck editor sidebar
+The component appears automatically in the Puck editor sidebar.
 
-## Common Patterns
+## Language
 
-**Fetching Landing Page Data:**
-```typescript
-const supabase = await getSupabaseClient();
-const { data: landingPage, error } = await supabase
-  .from('landing_pages')
-  .select('*')
-  .eq('slug', slug)
-  .single();
+All UI text, code comments, error messages, labels, placeholders, and variable names must be written in **English**. This applies to all files in the project — including components, API routes, and utilities. The only exception is default content inside Puck component `defaultProps` (e.g. sales copy), which may remain in Portuguese if it targets a Brazilian audience.
 
-if (error) throw error;
-return transformLandingPage(landingPage);
-```
+## Important Notes
 
-**Updating Landing Page:**
-```typescript
-const { data, error } = await supabase
-  .from('landing_pages')
-  .update({ title, data, checkout_url: checkoutUrl })
-  .eq('slug', slug)
-  .select()
-  .single();
-```
-
-## Troubleshooting
-
-**Puck editor not loading:**
-- Ensure `@measured/puck/puck.css` is imported in the editor page
-- Check browser console for component rendering errors
-
-**Supabase connection issues:**
-- Verify environment variables are set correctly
-- Check Supabase project is active and accessible
-- Ensure RLS policies allow the operation
-
-**Subdomain routing not working:**
-- Check middleware.ts is properly configured
-- Verify DNS/hosts file for subdomain setup
-- Check NEXT_PUBLIC_DOMAIN environment variable
+- **No authentication**: Admin panel is fully open. Post-MVP feature.
+- **RLS**: Enabled on `landing_pages` but currently permissive (all operations allowed).
+- **No tests**: No automated test suite.
+- **Tailwind v4**: No `tailwind.config.ts` — configuration uses the new CSS-first approach via `app/globals.css` with `@import "tailwindcss"` and `@theme`.
+- **`sonner`** is installed but not yet wired up. The editor currently uses a custom inline toast.
+- **Publish flow**: `components/admin/PublishDialog.tsx` handles the publish modal — new pages show a form (title, slug, checkout URL), existing pages show a success screen with copyable URLs.

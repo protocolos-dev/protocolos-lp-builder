@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Data } from "@measured/puck";
 import "@measured/puck/puck.css";
+import PublishDialog from "@/components/admin/PublishDialog";
 
 interface LandingPage {
   id: string;
@@ -14,6 +15,8 @@ interface LandingPage {
   data: Data;
   checkoutUrl?: string | null;
 }
+
+type DialogMode = "new" | "success" | "error";
 
 export default function EditorPage({
   params,
@@ -26,6 +29,12 @@ export default function EditorPage({
   const [landingPage, setLandingPage] = useState<LandingPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Publish dialog state
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<DialogMode>("new");
+  const [dialogErrorMsg, setDialogErrorMsg] = useState<string | undefined>();
+  const [pendingData, setPendingData] = useState<Data | null>(null);
 
   useEffect(() => {
     params.then((p) => {
@@ -42,7 +51,6 @@ export default function EditorPage({
       return;
     }
 
-    // Buscar landing page existente
     fetch(`/api/landing-pages/${slug}`)
       .then((res) => {
         if (!res.ok) throw new Error("Landing page not found");
@@ -54,71 +62,97 @@ export default function EditorPage({
       })
       .catch((error) => {
         console.error("Error loading landing page:", error);
-        alert("Error loading landing page");
         router.push("/admin");
       });
   }, [slug, isNew, router]);
 
+  // Triggered by Puck's Publish button
   const handleSave = async (data: Data) => {
+    if (isNew) {
+      // New pages: open publish form dialog
+      setPendingData(data);
+      setDialogMode("new");
+      setDialogOpen(true);
+      return;
+    }
+
+    // Existing pages: save immediately and show success/error dialog
     setSaving(true);
-
     try {
-      if (isNew) {
-        // Create new landing page
-        const title = prompt("Landing page title:");
-        const newSlug = prompt("Slug (subdomain):");
-        const checkoutUrl = prompt("Checkout URL (optional):");
+      const response = await fetch(`/api/landing-pages/${slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data }),
+      });
 
-        if (!title || !newSlug) {
-          alert("Title and slug are required");
-          setSaving(false);
-          return;
-        }
+      if (!response.ok) throw new Error("Failed to update landing page");
 
-        const response = await fetch("/api/landing-pages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            slug: newSlug,
-            title,
-            data,
-            checkoutUrl: checkoutUrl || undefined,
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || "Failed to create landing page");
-        }
-
-        alert("Landing page created successfully!");
-        router.push("/admin");
-      } else {
-        // Update existing landing page
-        const response = await fetch(`/api/landing-pages/${slug}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update landing page");
-        }
-
-        alert("Landing page updated successfully!");
-      }
+      setDialogMode("success");
+      setDialogOpen(true);
     } catch (error) {
-      console.error("Error saving:", error);
-      alert(`Error while saving: ${error}`);
+      setDialogErrorMsg(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+      setDialogMode("error");
+      setDialogOpen(true);
     } finally {
       setSaving(false);
     }
   };
 
+  // Triggered by the publish form dialog (new pages only)
+  const handlePublishSubmit = async (form: {
+    title: string;
+    slug: string;
+    checkoutUrl: string;
+  }) => {
+    if (!pendingData) return;
+    setSaving(true);
+
+    try {
+      const response = await fetch("/api/landing-pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: form.slug,
+          title: form.title,
+          data: pendingData,
+          checkoutUrl: form.checkoutUrl || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create landing page");
+      }
+
+      const created: LandingPage = await response.json();
+      setLandingPage(created);
+      setSlug(created.slug);
+      setIsNew(false);
+      setDialogMode("success");
+    } catch (error) {
+      setDialogErrorMsg(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+      setDialogMode("error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    // After successfully publishing a new page, redirect to admin
+    if (dialogMode === "success" && isNew) {
+      router.push("/admin");
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="dark min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground text-sm">Loading...</p>
       </div>
     );
   }
@@ -130,11 +164,23 @@ export default function EditorPage({
         data={landingPage?.data || { content: [], root: {} }}
         onPublish={handleSave}
       />
-      {saving && (
-        <div className="fixed top-4 right-4 bg-purple-600 text-white px-6 py-3 rounded-lg shadow-lg">
+
+      {saving && !dialogOpen && (
+        <div className="fixed top-4 right-4 z-50 bg-foreground text-background text-sm font-medium px-4 py-2 rounded-md shadow-lg">
           Saving...
         </div>
       )}
+
+      <PublishDialog
+        open={dialogOpen}
+        mode={dialogMode}
+        pageSlug={landingPage?.slug ?? (isNew ? undefined : slug)}
+        checkoutUrl={landingPage?.checkoutUrl}
+        errorMessage={dialogErrorMsg}
+        saving={saving}
+        onSubmit={handlePublishSubmit}
+        onClose={handleDialogClose}
+      />
     </div>
   );
 }

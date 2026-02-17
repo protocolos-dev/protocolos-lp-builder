@@ -48,7 +48,7 @@ export const HeroSection = ({
 
   return (
     <>
-      <section className="hero-gradient py-14 md:py-20 px-5">
+      <section className="hero-gradient py-14 md:py-20 px-5 flex items-center justify-center">
         <div className="container max-w-4xl">
           {/* Logo */}
           <motion.div

@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getSupabaseClient, transformLandingPage } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
+
+async function getAuthenticatedUser() {
+  const supabase = await createClient(cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
 
 // GET /api/landing-pages/[slug] - Buscar landing page por slug
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { slug } = await params;
     const supabase = await getSupabaseClient();
@@ -42,6 +55,11 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { slug } = await params;
     const body = await request.json();
@@ -86,6 +104,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { slug } = await params;
     const supabase = await getSupabaseClient();

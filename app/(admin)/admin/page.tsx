@@ -1,80 +1,76 @@
 import Link from "next/link";
 import { getSupabaseClient, transformLandingPage } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default async function AdminPage() {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase
-    .from('landing_pages')
-    .select('*')
-    .order('updated_at', { ascending: false });
+    .from("landing_pages")
+    .select("*")
+    .order("updated_at", { ascending: false });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   const landingPages = data.map(transformLandingPage);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">
-            Landing Pages
-          </h1>
-          <Link
-            href="/admin/editor/new"
-            className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-          >
-            + New Landing Page
-          </Link>
+    <div className="dark min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl font-semibold text-foreground">Landing Pages</h1>
+          <Button asChild>
+            <Link href="/admin/editor/new">+ New page</Link>
+          </Button>
         </div>
 
+        {/* Empty state */}
         {landingPages.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-600 text-lg mb-4">
-              No landing pages created yet.
-            </p>
-            <Link
-              href="/admin/editor/new"
-              className="text-purple-600 hover:text-purple-700 font-semibold"
-            >
-              Create your first landing page →
-            </Link>
-          </div>
+          <Card>
+            <CardContent className="py-20 flex flex-col items-center gap-4 text-center">
+              <p className="text-muted-foreground text-sm">No landing pages yet.</p>
+              <Button variant="outline" asChild>
+                <Link href="/admin/editor/new">Create your first page →</Link>
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          /* Pages grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {landingPages.map((lp) => (
-              <div
-                key={lp.id}
-                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
-              >
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  {lp.title}
-                </h2>
-                <p className="text-gray-600 text-sm mb-4">
-                  Subdomain: <span className="font-mono">{lp.slug}</span>
-                </p>
-                <div className="text-xs text-gray-500 mb-4">
-                  Updated on:{" "}
-                  {new Date(lp.updatedAt).toLocaleDateString("en-US")}
-                </div>
-                <div className="flex gap-2">
-                  <Link
-                    href={`/admin/editor/${lp.slug}`}
-                    className="flex-1 bg-purple-600 text-white px-4 py-2 rounded text-center hover:bg-purple-700 transition-colors"
-                  >
-                    Edit
-                  </Link>
-                  <a
-                    href={`/${lp.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded text-center hover:bg-gray-300 transition-colors"
-                  >
-                    Preview
-                  </a>
-                </div>
-              </div>
+              <Card key={lp.id} className="flex flex-col">
+                <CardContent className="flex flex-col flex-1 p-5 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-sm font-semibold text-foreground truncate">
+                      {lp.title}
+                    </h2>
+                    <Badge variant="secondary" className="font-mono self-start text-xs">
+                      /{lp.slug}
+                    </Badge>
+                  </div>
+
+                  <p className="text-muted-foreground text-xs mt-auto">
+                    Updated {new Date(lp.updatedAt).toLocaleDateString("en-US")}
+                  </p>
+
+                  <div className="flex gap-2">
+                    <Button asChild size="sm" className="flex-1">
+                      <Link href={`/admin/editor/${lp.slug}`}>Edit</Link>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild className="flex-1">
+                      <a
+                        href={`/${lp.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Preview
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

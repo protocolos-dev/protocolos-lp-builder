@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getSupabaseClient, transformLandingPage } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
 import { Data } from "@measured/puck";
+
+async function getAuthenticatedUser() {
+  const supabase = await createClient(cookies());
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
 
 // GET /api/landing-pages - Listar todas as landing pages
 export async function GET() {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const supabase = await getSupabaseClient();
     const { data: landingPages, error } = await supabase
@@ -25,11 +38,16 @@ export async function GET() {
 
 // POST /api/landing-pages - Criar nova landing page
 export async function POST(request: NextRequest) {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { slug, title, data, checkoutUrl } = body;
 
-    // Validação básica
+    // Basic validation
     if (!slug || !title || !data) {
       return NextResponse.json(
         { error: "Missing required fields: slug, title, data" },

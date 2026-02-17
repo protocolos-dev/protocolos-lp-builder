@@ -1,20 +1,27 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import LoginForm from "@/components/auth/LoginForm";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient(cookies());
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/admin");
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600">
-      <div className="text-center text-white px-6">
-        <h1 className="text-6xl font-bold mb-6">Landing Page Builder</h1>
-        <p className="text-2xl mb-12 opacity-90">
-          Create amazing landing pages with drag and drop
-        </p>
-        <Link
-          href="/admin"
-          className="inline-block bg-white text-purple-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors"
-        >
-          Open Admin Panel
-        </Link>
+    <div className="dark min-h-screen bg-background flex flex-col items-center justify-center gap-8 px-4">
+      <div className="text-center space-y-1">
+        <h1 className="text-foreground text-2xl font-semibold tracking-tight">
+          Landing Page Builder
+        </h1>
+        <p className="text-muted-foreground text-sm">Admin Panel</p>
       </div>
+      <LoginForm />
     </div>
   );
 }

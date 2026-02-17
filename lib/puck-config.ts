@@ -1,3 +1,4 @@
+import React from "react";
 import { Config } from "@measured/puck";
 import { Hero } from "@/components/landing/Hero";
 import { HeroSection } from "@/components/landing/HeroSection";
@@ -17,7 +18,72 @@ import { CTA } from "@/components/landing/CTA";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { Footer } from "@/components/landing/Footer";
 
+// ── Container helpers ────────────────────────────────────────────────────────
+
+const containerMaxWidthField = {
+  type: "select" as const,
+  options: [
+    { label: "Global default", value: "" },
+    { label: "960px", value: "960px" },
+    { label: "1280px", value: "1280px" },
+    { label: "1440px", value: "1440px" },
+    { label: "1600px", value: "1600px" },
+    { label: "Full width", value: "100%" },
+  ],
+};
+
+// Wraps a component with an optional centered max-width container.
+// When containerMaxWidth is empty the component renders as-is (inherits root).
+function withContainer(Component: any) {
+  return function ContainerWrapper(props: any) {
+    const { containerMaxWidth, ...rest } = props;
+    if (!containerMaxWidth) return React.createElement(Component, rest);
+    return React.createElement(
+      "div",
+      {
+        style: {
+          maxWidth: containerMaxWidth,
+          marginLeft: "auto",
+          marginRight: "auto",
+          width: "100%",
+        },
+      },
+      React.createElement(Component, rest)
+    );
+  };
+}
+
+// ── Config ───────────────────────────────────────────────────────────────────
+
 export const puckConfig: Config = {
+  root: {
+    fields: {
+      maxWidth: {
+        type: "select",
+        options: [
+          { label: "960px", value: "960px" },
+          { label: "1280px", value: "1280px" },
+          { label: "1440px (default)", value: "1440px" },
+          { label: "1600px", value: "1600px" },
+          { label: "Full width", value: "100%" },
+        ],
+      },
+    },
+    defaultProps: { maxWidth: "1440px" },
+    render: (({ children, maxWidth }: { children: React.ReactNode; maxWidth: string }) =>
+      React.createElement(
+        "div",
+        {
+          style: {
+            maxWidth: maxWidth || "1440px",
+            marginLeft: "auto",
+            marginRight: "auto",
+            width: "100%",
+          },
+        },
+        children
+      )) as any,
+  },
   components: {
     HeroSection: {
       fields: {
@@ -1321,3 +1387,13 @@ export const puckConfig: Config = {
     },
   },
 };
+
+// ── Inject containerMaxWidth into every component ────────────────────────────
+// This adds a "Container max-width" field to each component in the Puck editor
+// sidebar without touching individual component files.
+for (const key of Object.keys(puckConfig.components) as Array<keyof typeof puckConfig.components>) {
+  const comp = puckConfig.components[key] as any;
+  comp.fields = { containerMaxWidth: containerMaxWidthField, ...comp.fields };
+  comp.defaultProps = { containerMaxWidth: "", ...comp.defaultProps };
+  comp.render = withContainer(comp.render);
+}

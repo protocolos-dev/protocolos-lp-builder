@@ -1,7 +1,7 @@
-import { Render } from "@measured/puck";
-import { puckConfig } from "@/lib/puck-config";
 import { getSupabaseClient } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+import PuckRenderer from "@/components/landing/PuckRenderer";
+import type { Data } from "@measured/puck";
 
 export default async function LandingPage({
   params,
@@ -10,10 +10,10 @@ export default async function LandingPage({
 }) {
   const { slug } = await params;
 
-  // Pegar o primeiro segmento da URL como slug
+  // Use the first URL segment as the slug
   const landingSlug = slug[0];
 
-  // Buscar landing page no banco
+  // Fetch landing page from the database
   const supabase = await getSupabaseClient();
   const { data: landingPage, error } = await supabase
     .from('landing_pages')
@@ -26,16 +26,16 @@ export default async function LandingPage({
   }
 
   // JSONB auto-parses, no need for JSON.parse
-  const data = landingPage.data as any;
+  const data = landingPage.data as Data;
 
   return (
     <div>
-      <Render config={puckConfig} data={data} />
+      <PuckRenderer data={data} />
     </div>
   );
 }
 
-// Gerar metadata dinâmico
+// Generate dynamic metadata
 export async function generateMetadata({
   params,
 }: {

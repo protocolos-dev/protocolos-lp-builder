@@ -1,34 +1,39 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { updateSession } from "@/utils/supabase/middleware";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   const hostname = request.headers.get("host") || "";
-  const url = request.nextUrl;
 
-  // Extrair o subdomínio
-  // Ex: produto.exemplo.com -> produto
+  // Handle subdomain routing first (non-localhost, non-main domain)
   const subdomain = hostname.split(".")[0];
+  const isSubdomain =
+    !hostname.includes("localhost") &&
+    hostname !== process.env.NEXT_PUBLIC_DOMAIN &&
+    subdomain !== "www" &&
+    subdomain !== hostname;
 
-  // Se estiver em localhost ou no domínio principal, não fazer nada
-  if (
-    hostname.includes("localhost") ||
-    hostname === process.env.NEXT_PUBLIC_DOMAIN ||
-    subdomain === "www" ||
-    subdomain === hostname // Sem subdomínio
-  ) {
-    return NextResponse.next();
+  if (isSubdomain && !pathname.startsWith("/admin") && !pathname.startsWith("/api")) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${subdomain}${pathname}`;
+    return NextResponse.rewrite(url);
   }
 
-  // Se for uma rota admin, não redirecionar
-  if (url.pathname.startsWith("/admin") || url.pathname.startsWith("/api")) {
-    return NextResponse.next();
+  // Refresh Supabase session and get current user
+  const { supabaseResponse, user } = await updateSession(request);
+
+  // Protect /admin routes
+  if (pathname.startsWith("/admin") && !user) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Reescrever para a rota da landing page com o slug do subdomínio
-  // Ex: produto.exemplo.com -> /produto
-  url.pathname = `/${subdomain}${url.pathname}`;
+  // Redirect authenticated users away from login page
+  if (pathname === "/" && user) {
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
 
-  return NextResponse.rewrite(url);
+  return supabaseResponse;
 }
 
 export const config = {
