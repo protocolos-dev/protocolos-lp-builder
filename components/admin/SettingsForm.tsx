@@ -25,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
+import { getLandingPageUrl } from "@/lib/subdomain";
 
 interface SettingsFormProps {
   currentSlug: string;
@@ -161,8 +162,13 @@ export default function SettingsForm({
                   className="rounded-l-none font-mono"
                 />
               </div>
+              {slug && (
+                <p className="text-xs text-muted-foreground font-mono">
+                  {getLandingPageUrl(slug)}
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Defines the page URL and subdomain. Changing it will redirect you to the new settings URL.
+                Changing the slug redirects you to the updated settings URL.
               </p>
             </div>
 

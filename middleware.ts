@@ -6,14 +6,26 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get("host") || "";
 
-  // Handle subdomain routing first (non-localhost, non-main domain)
-  const subdomain = hostname.split(".")[0];
-  const isSubdomain =
-    !hostname.includes("localhost") &&
-    hostname !== process.env.NEXT_PUBLIC_DOMAIN &&
-    subdomain !== "www" &&
-    subdomain !== hostname;
+  // Strip port to get clean hostname (e.g. "slug.localhost:3000" → "slug.localhost")
+  const hostWithoutPort = hostname.split(":")[0];
+  const subdomain = hostWithoutPort.split(".")[0];
 
+  // Subdomain detection:
+  //   Local dev  — slug.localhost   (e.g. produto.localhost:3000)
+  //   Production — slug.domain.com  (e.g. produto.example.com)
+  const isLocalhostSubdomain =
+    hostWithoutPort !== "localhost" && hostWithoutPort.endsWith(".localhost");
+
+  const isProductionSubdomain =
+    !!process.env.NEXT_PUBLIC_DOMAIN &&
+    hostWithoutPort !== process.env.NEXT_PUBLIC_DOMAIN &&
+    hostWithoutPort.endsWith(`.${process.env.NEXT_PUBLIC_DOMAIN}`);
+
+  const isSubdomain =
+    (isLocalhostSubdomain || isProductionSubdomain) && subdomain !== "www";
+
+  // Rewrite subdomain requests to the internal slug path
+  // e.g. produto.example.com/path → /produto/path
   if (isSubdomain && !pathname.startsWith("/admin") && !pathname.startsWith("/api")) {
     const url = request.nextUrl.clone();
     url.pathname = `/${subdomain}${pathname}`;

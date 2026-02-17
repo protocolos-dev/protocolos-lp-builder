@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getLandingPageUrl } from "@/lib/subdomain";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -162,7 +163,7 @@ export default function PublishDialog({
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const pageUrl = pageSlug ? `${window.location.origin}/${pageSlug}` : "";
+  const pageUrl = pageSlug ? getLandingPageUrl(pageSlug) : "";
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -235,11 +236,7 @@ export default function PublishDialog({
                 )}
                 {form.slug && !errors.slug && (
                   <p className="text-xs text-muted-foreground">
-                    URL:{" "}
-                    {typeof window !== "undefined"
-                      ? window.location.origin
-                      : ""}
-                    /{form.slug}
+                    URL: {getLandingPageUrl(form.slug)}
                   </p>
                 )}
               </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSupabaseClient, transformLandingPage } from "@/lib/supabase";
+import { getLandingPageUrl } from "@/lib/subdomain";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +63,7 @@ export default async function AdminPage() {
                     </Button>
                     <Button variant="outline" size="sm" asChild className="flex-1">
                       <a
-                        href={`/${lp.slug}`}
+                        href={getLandingPageUrl(lp.slug)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
