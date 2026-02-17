@@ -19,7 +19,7 @@ export interface EnemySectionProps {
   gutBlockReasonsLabel: string;
   gutBlockReasons: { text: string; icon: string }[];
   heroVsGutblockImageUrl: string;
-  solutionTexts: string[];
+  solutionTexts: { text: string }[];
   lies: { title: string; truth: string; icon: string }[];
   liesHeading: string;
   bridgeQuoteBadge: string;
@@ -154,9 +154,9 @@ export const EnemySection = ({
 
                   <div className="mt-8 bg-surface-green-light border-2 border-secondary/25 rounded-xl p-6 text-center">
                     <img src={heroVsGutblockImageUrl} alt="Hero fighting the Gut Block villain" className="w-48 mx-auto mb-4 object-contain" />
-                    {solutionTexts.map((text, i) => (
+                    {solutionTexts.map((item, i) => (
                       <p key={i} className={i === solutionTexts.length - 1 ? "text-xl font-black text-secondary mt-2" : "text-lg font-bold text-secondary leading-relaxed"}>
-                        {text}
+                        {item.text}
                       </p>
                     ))}
                   </div>
@@ -196,9 +196,9 @@ export const EnemySection = ({
 
                 <div className="mt-8 bg-surface-green-light border-2 border-secondary/25 rounded-xl p-6 text-center">
                   <img src={heroVsGutblockImageUrl} alt="Hero fighting the Gut Block villain" className="w-48 mx-auto mb-4 object-contain" />
-                  {solutionTexts.map((text, i) => (
+                  {solutionTexts.map((item, i) => (
                     <p key={i} className={i === solutionTexts.length - 1 ? "text-xl font-black text-secondary mt-2" : "text-lg font-bold text-secondary leading-relaxed"}>
-                      {text}
+                      {item.text}
                     </p>
                   ))}
                 </div>
