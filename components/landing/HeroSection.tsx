@@ -1,18 +1,49 @@
+"use client";
+
 import { useState } from "react";
 import { motion } from "framer-motion";
-import beforeImg from "@/assets/before-child.jpg";
-import afterImg from "@/assets/after-child.jpg";
-import avatarSarah from "@/assets/avatar-sarah.jpg";
-import avatarJennifer from "@/assets/avatar-jennifer.jpg";
-import avatarMarcus from "@/assets/avatar-marcus.jpg";
-import pressChicagoTribune from "@/assets/press-chicago-tribune.png";
-import pressHealthline from "@/assets/press-healthline.png";
-import pressLiveNaturally from "@/assets/press-live-naturally.png";
-import pressMarthaStewart from "@/assets/press-martha-stewart.png";
-import pressParents from "@/assets/press-parents.png";
-import pressScaryMommy from "@/assets/press-scary-mommy.png";
 
-const HeroSection = () => {
+export interface HeroSectionProps {
+  logoUrl: string;
+  badgeText: string;
+  headline: string;
+  subheadline: string;
+  ctaText: string;
+  ctaUrl: string;
+  socialProofCount: string;
+  rating: string;
+  guaranteeText: string;
+  scratchBoxTeaser: string;
+  scratchBoxReveal: string;
+  beforeImageUrl: string;
+  beforeImageLabel: string;
+  afterImageUrl: string;
+  afterImageLabel: string;
+  avatarUrls: { url: string }[];
+  pressLogos: { url: string; alt: string }[];
+  ctaBenefits: { icon: string; text: string }[];
+}
+
+export const HeroSection = ({
+  logoUrl,
+  badgeText,
+  headline,
+  subheadline,
+  ctaText,
+  ctaUrl,
+  socialProofCount,
+  rating,
+  guaranteeText,
+  scratchBoxTeaser,
+  scratchBoxReveal,
+  beforeImageUrl,
+  beforeImageLabel,
+  afterImageUrl,
+  afterImageLabel,
+  avatarUrls = [],
+  pressLogos = [],
+  ctaBenefits = [],
+}: HeroSectionProps) => {
   const [revealed, setRevealed] = useState(false);
 
   return (
@@ -26,11 +57,13 @@ const HeroSection = () => {
             transition={{ duration: 0.6 }}
             className="text-center mb-6"
           >
-            <img
-              src="https://joyspringvitamins.com/_next/static/media/logo.ee08c9ef.svg"
-              alt="JoySpring"
-              className="h-11 w-auto mx-auto brightness-0 invert"
-            />
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="h-11 w-auto mx-auto brightness-0 invert"
+              />
+            )}
           </motion.div>
 
           {/* Badge */}
@@ -41,7 +74,7 @@ const HeroSection = () => {
             className="text-center mb-6"
           >
             <span className="inline-block bg-card/90 backdrop-blur-sm border border-primary-foreground/20 px-6 py-2 rounded-full shadow-sm text-sm font-semibold tracking-wide text-primary">
-              The 90-Day Gut Reset For Kids™
+              {badgeText}
             </span>
           </motion.div>
 
@@ -51,14 +84,8 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.7 }}
             className="text-center text-[1.75rem] sm:text-[2.25rem] md:text-[2.75rem] lg:text-[3.25rem] leading-[1.18] font-bold mb-8 font-heading text-primary-foreground max-w-5xl mx-auto tracking-tight drop-shadow-sm"
-          >
-            Why Does Your Pediatrician Keep Saying{" "}
-            <span className="font-extrabold text-[hsl(50,100%,80%)] underline decoration-[hsl(50,100%,80%)]/40 decoration-[3px] underline-offset-4">"It's Normal"</span>{" "}
-            When Your Child Goes{" "}
-            <span className="font-extrabold text-[hsl(355,92%,80%)]">4 Days Without Pooping</span>, Eats Only{" "}
-            <span className="font-extrabold text-[hsl(355,92%,80%)]">6 Foods</span>, and Has{" "}
-            <span className="font-extrabold text-[hsl(355,92%,80%)]">Dark Circles Under Their Eyes</span>?
-          </motion.h1>
+            dangerouslySetInnerHTML={{ __html: headline }}
+          />
 
           {/* Subheadline */}
           <motion.p
@@ -66,11 +93,8 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.7 }}
             className="text-center text-base md:text-lg max-w-2xl mx-auto mb-8 text-primary-foreground leading-relaxed"
-          >
-            The accidental discovery by a desperate mom that revealed the{" "}
-            <span className="font-bold text-[hsl(50,100%,85%)]">3-phase sequence doctors don't learn in med school</span>... and how{" "}
-            <span className="font-bold">1,247 parents</span> have used it to transform their children's digestive health in just <span className="font-bold">90 days</span>
-          </motion.p>
+            dangerouslySetInnerHTML={{ __html: subheadline }}
+          />
 
           {/* Social proof strip */}
           <motion.div
@@ -81,18 +105,18 @@ const HeroSection = () => {
           >
             <div className="flex items-center gap-2 bg-card/95 backdrop-blur-sm px-5 py-2.5 rounded-full shadow-md">
               <div className="flex -space-x-2">
-                {[avatarSarah, avatarJennifer, avatarMarcus].map((src, i) => (
-                  <img key={i} src={src} alt="" className="w-8 h-8 rounded-full border-2 border-card object-cover" />
+                {avatarUrls.slice(0, 3).map((avatar, i) => (
+                  <img key={i} src={avatar.url} alt="" className="w-8 h-8 rounded-full border-2 border-card object-cover" />
                 ))}
               </div>
-              <span className="text-sm font-bold text-foreground">1,247+ parents joined</span>
+              <span className="text-sm font-bold text-foreground">{socialProofCount}</span>
             </div>
             <div className="flex items-center gap-1.5 bg-card/95 backdrop-blur-sm px-5 py-2.5 rounded-full shadow-md">
               <span className="text-sm">⭐⭐⭐⭐⭐</span>
-              <span className="text-sm font-bold text-foreground">4.8/5 rating</span>
+              <span className="text-sm font-bold text-foreground">{rating}</span>
             </div>
             <div className="bg-card/95 backdrop-blur-sm px-5 py-2.5 rounded-full shadow-md">
-              <span className="text-sm font-bold text-foreground">✓ 30-Day Guarantee</span>
+              <span className="text-sm font-bold text-foreground">✓ {guaranteeText}</span>
             </div>
           </motion.div>
 
@@ -105,17 +129,13 @@ const HeroSection = () => {
           >
             {/* Primary CTA */}
             <a
-              href="#choose-option"
+              href={ctaUrl}
               className="block w-full cta-gradient text-center py-5 rounded-full text-primary-foreground font-extrabold text-lg md:text-xl shadow-[0_4px_20px_rgba(0,0,0,0.25)] hover:shadow-[0_6px_30px_rgba(0,0,0,0.35)] transition-all hover:-translate-y-1 mb-3 tracking-wide"
             >
-              SEE THE 3-PHASE PROTOCOL →
+              {ctaText}
             </a>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-              {[
-                { icon: "🔓", text: "No commitment" },
-                { icon: "🛡️", text: "30-day guarantee" },
-                { icon: "📦", text: "Free shipping" },
-              ].map((item) => (
+              {ctaBenefits.map((item) => (
                 <span
                   key={item.text}
                   className="inline-flex items-center gap-1.5 bg-card/20 backdrop-blur-sm border border-primary-foreground/20 px-4 py-1.5 rounded-full text-xs font-bold text-primary-foreground shadow-sm"
@@ -136,18 +156,15 @@ const HeroSection = () => {
               }`}
             >
               {!revealed && (
-                <p className="text-base font-bold text-foreground">
-                  👆 Scratch here to discover the <span className="text-accent">#1 mistake</span> keeping your child stuck in the picky-eating, constipation cycle
-                </p>
+                <p className="text-base font-bold text-foreground" dangerouslySetInnerHTML={{ __html: scratchBoxTeaser }} />
               )}
               {revealed && (
                 <motion.p
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-lg font-extrabold text-foreground"
-                >
-                  ⚠️ You're trying to fix appetite without addressing <span className="text-accent">DIGESTION FIRST</span>
-                </motion.p>
+                  dangerouslySetInnerHTML={{ __html: scratchBoxReveal }}
+                />
               )}
             </div>
           </motion.div>
@@ -161,14 +178,14 @@ const HeroSection = () => {
           >
             <div className="bg-card rounded-2xl p-4 text-center shadow-md">
               <div className="relative rounded-xl overflow-hidden">
-                <img src={beforeImg} alt="Frustrated child" className="w-full aspect-square object-cover grayscale brightness-[0.7]" />
+                <img src={beforeImageUrl} alt="Before" className="w-full aspect-square object-cover grayscale brightness-[0.7]" />
                 <div className="absolute inset-0 rounded-xl" style={{ boxShadow: 'inset 0 0 50px rgba(0,0,0,0.4)' }} />
               </div>
-              <p className="text-foreground mt-3 text-sm font-bold font-heading">BEFORE: Bloated, Picky, Struggling</p>
+              <p className="text-foreground mt-3 text-sm font-bold font-heading">{beforeImageLabel}</p>
             </div>
             <div className="bg-card rounded-2xl p-4 text-center shadow-md">
-              <img src={afterImg} alt="Happy child eating" className="w-full rounded-xl aspect-square object-cover" />
-              <p className="text-foreground mt-3 text-sm font-bold font-heading">AFTER: Comfortable, Eating, Thriving</p>
+              <img src={afterImageUrl} alt="After" className="w-full rounded-xl aspect-square object-cover" />
+              <p className="text-foreground mt-3 text-sm font-bold font-heading">{afterImageLabel}</p>
             </div>
           </motion.div>
         </div>
@@ -181,15 +198,8 @@ const HeroSection = () => {
             As Featured In
           </p>
           <div className="flex justify-center items-center flex-wrap gap-8 opacity-60">
-            {[
-              { src: pressChicagoTribune, alt: "Chicago Tribune" },
-              { src: pressHealthline, alt: "Healthline" },
-              { src: pressLiveNaturally, alt: "Live Naturally" },
-              { src: pressMarthaStewart, alt: "Martha Stewart" },
-              { src: pressParents, alt: "Parents" },
-              { src: pressScaryMommy, alt: "Scary Mommy" },
-            ].map((logo) => (
-              <img key={logo.alt} src={logo.src} alt={logo.alt} className="h-3.5 md:h-4 w-auto object-contain" style={{ imageRendering: 'auto' }} />
+            {pressLogos.map((logo) => (
+              <img key={logo.alt} src={logo.url} alt={logo.alt} className="h-3.5 md:h-4 w-auto object-contain" style={{ imageRendering: 'auto' }} />
             ))}
           </div>
         </div>
@@ -197,5 +207,3 @@ const HeroSection = () => {
     </>
   );
 };
-
-export default HeroSection;
