@@ -29,7 +29,7 @@ export default async function LandingPage({
   const data = landingPage.data as Data;
 
   return (
-    <div>
+    <div style={{ overflowX: "hidden" }}>
       <PuckRenderer data={data} />
     </div>
   );

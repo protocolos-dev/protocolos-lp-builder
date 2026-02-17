@@ -1,5 +1,6 @@
 import React from "react";
 import { Config } from "@measured/puck";
+import { ImagePickerField } from "@/components/admin/ImagePickerField";
 import { Hero } from "@/components/landing/Hero";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ProblemSection } from "@/components/landing/ProblemSection";
@@ -53,6 +54,84 @@ function withContainer(Component: any) {
   };
 }
 
+// ── Background color helpers ──────────────────────────────────────────────────
+
+const backgroundColorField = {
+  type: "custom" as const,
+  render: ({ value, onChange }: { value: string; onChange: (v: string) => void }) =>
+    React.createElement(
+      "div",
+      { style: { display: "flex", gap: 8, alignItems: "center" } },
+      React.createElement("input", {
+        type: "color",
+        value: value || "#ffffff",
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value),
+        style: { width: 36, height: 30, padding: 2, cursor: "pointer", borderRadius: 4, border: "1px solid #d1d5db" },
+      }),
+      React.createElement("input", {
+        type: "text",
+        value: value,
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value),
+        placeholder: "e.g. #ffffff or transparent",
+        style: {
+          flex: 1,
+          padding: "4px 8px",
+          fontSize: 12,
+          border: "1px solid #d1d5db",
+          borderRadius: 4,
+          fontFamily: "monospace",
+        },
+      }),
+      value
+        ? React.createElement(
+            "button",
+            {
+              type: "button",
+              onClick: () => onChange(""),
+              style: {
+                fontSize: 11,
+                color: "#6b7280",
+                cursor: "pointer",
+                background: "none",
+                border: "none",
+                padding: "0 4px",
+                whiteSpace: "nowrap",
+              },
+            },
+            "Clear"
+          )
+        : null
+    ),
+};
+
+// Custom image picker field — shows a preview, file upload button, and URL input.
+const imagePickerField = {
+  type: "custom" as const,
+  render: ({ value, onChange }: { value: string; onChange: (v: string) => void }) =>
+    React.createElement(ImagePickerField, { value: value ?? "", onChange }),
+};
+
+// Wraps a component with an optional background color that always spans the
+// full viewport width, even when inside a centered max-width root container.
+// Uses the full-bleed technique: width:100vw + margin-left:calc(50% - 50vw).
+function withBackgroundColor(Component: any) {
+  return function BackgroundColorWrapper(props: any) {
+    const { backgroundColor, ...rest } = props;
+    if (!backgroundColor) return React.createElement(Component, rest);
+    return React.createElement(
+      "div",
+      {
+        style: {
+          backgroundColor,
+          width: "100vw",
+          marginLeft: "calc(50% - 50vw)",
+        },
+      },
+      React.createElement(Component, rest)
+    );
+  };
+}
+
 // ── Config ───────────────────────────────────────────────────────────────────
 
 export const puckConfig: Config = {
@@ -87,7 +166,7 @@ export const puckConfig: Config = {
   components: {
     HeroSection: {
       fields: {
-        logoUrl: { type: "text" },
+        logoUrl: imagePickerField,
         badgeText: { type: "text" },
         headline: { type: "textarea" },
         subheadline: { type: "textarea" },
@@ -98,14 +177,14 @@ export const puckConfig: Config = {
         guaranteeText: { type: "text" },
         scratchBoxTeaser: { type: "textarea" },
         scratchBoxReveal: { type: "textarea" },
-        beforeImageUrl: { type: "text" },
+        beforeImageUrl: imagePickerField,
         beforeImageLabel: { type: "text" },
-        afterImageUrl: { type: "text" },
+        afterImageUrl: imagePickerField,
         afterImageLabel: { type: "text" },
         avatarUrls: {
           type: "array",
           arrayFields: {
-            url: { type: "text" },
+            url: imagePickerField,
           },
         },
         ctaBenefits: {
@@ -118,7 +197,7 @@ export const puckConfig: Config = {
         pressLogos: {
           type: "array",
           arrayFields: {
-            url: { type: "text" },
+            url: imagePickerField,
             alt: { type: "text" },
           },
         },
@@ -239,14 +318,14 @@ export const puckConfig: Config = {
       fields: {
         mainHeading: { type: "text" },
         gutBlockBadge: { type: "text" },
-        gutBlockImageUrl: { type: "text" },
+        gutBlockImageUrl: imagePickerField,
         gutBlockImageAlt: { type: "text" },
         tapToRevealTitle: { type: "text" },
         tapToRevealSubtext: { type: "text" },
         gutBlockCaptionTitle: { type: "text" },
         gutBlockCaptionDescription: { type: "text" },
         criticalInsightBadge: { type: "text" },
-        gutBlockVillainImageUrl: { type: "text" },
+        gutBlockVillainImageUrl: imagePickerField,
         villainTitle: { type: "text" },
         villainExplanation: { type: "textarea" },
         gutBlockReasonsLabel: { type: "text" },
@@ -257,7 +336,7 @@ export const puckConfig: Config = {
             icon: { type: "text" },
           },
         },
-        heroVsGutblockImageUrl: { type: "text" },
+        heroVsGutblockImageUrl: imagePickerField,
         solutionTexts: {
           type: "array",
           arrayFields: {
@@ -456,7 +535,7 @@ export const puckConfig: Config = {
       fields: {
         mainHeading: { type: "text" },
         subtitle: { type: "textarea" },
-        gutResetHeroUrl: { type: "text" },
+        gutResetHeroUrl: imagePickerField,
         phases: {
           type: "array",
           arrayFields: {
@@ -494,11 +573,11 @@ export const puckConfig: Config = {
               },
             },
             solutionBg: { type: "text" },
-            productImgUrl: { type: "text" },
+            productImgUrl: imagePickerField,
             customerPhotoUrls: {
               type: "array",
               arrayFields: {
-                url: { type: "text" },
+                url: imagePickerField,
               },
             },
           },
@@ -677,7 +756,7 @@ export const puckConfig: Config = {
         socialProofAvatarUrls: {
           type: "array",
           arrayFields: {
-            url: { type: "text" },
+            url: imagePickerField,
           },
         },
         socialProofParentsLabel: { type: "text" },
@@ -691,7 +770,7 @@ export const puckConfig: Config = {
             text: { type: "textarea" },
             author: { type: "text" },
             subtitle: { type: "text" },
-            avatarUrl: { type: "text" },
+            avatarUrl: imagePickerField,
           },
         },
         verifiedBadge: { type: "text" },
@@ -718,7 +797,7 @@ export const puckConfig: Config = {
             text: { type: "textarea" },
             author: { type: "text" },
             day: { type: "text" },
-            avatarUrl: { type: "text" },
+            avatarUrl: imagePickerField,
             colorIndex: {
               type: "radio",
               options: [
@@ -860,7 +939,7 @@ export const puckConfig: Config = {
         bumpHeading: { type: "text" },
         bumpSubheading: { type: "text" },
         bumpDescription: { type: "textarea" },
-        bumpImageUrl: { type: "text" },
+        bumpImageUrl: imagePickerField,
         bumpUnitPrice: { type: "number" },
         bumpOriginalPrice: { type: "number" },
         bumpCheckoutUrl: { type: "text" },
@@ -1063,7 +1142,7 @@ export const puckConfig: Config = {
         },
         finalCtaText: { type: "text" },
         finalCtaUrl: { type: "text" },
-        footerLogoUrl: { type: "text" },
+        footerLogoUrl: imagePickerField,
         footerCopyright: { type: "text" },
       },
       defaultProps: {
@@ -1137,7 +1216,7 @@ export const puckConfig: Config = {
         subtitle: { type: "textarea" },
         ctaText: { type: "text" },
         ctaUrl: { type: "text" },
-        backgroundImage: { type: "text" },
+        backgroundImage: imagePickerField,
         align: {
           type: "radio",
           options: [
@@ -1300,7 +1379,7 @@ export const puckConfig: Config = {
             quote: { type: "textarea" },
             author: { type: "text" },
             role: { type: "text" },
-            avatar: { type: "text" },
+            avatar: imagePickerField,
           },
         },
       },
@@ -1388,12 +1467,21 @@ export const puckConfig: Config = {
   },
 };
 
-// ── Inject containerMaxWidth into every component ────────────────────────────
-// This adds a "Container max-width" field to each component in the Puck editor
-// sidebar without touching individual component files.
+// ── Inject shared fields into every component ────────────────────────────────
+// Adds backgroundColor and containerMaxWidth to every component in the Puck
+// editor sidebar without touching individual component files.
 for (const key of Object.keys(puckConfig.components) as Array<keyof typeof puckConfig.components>) {
   const comp = puckConfig.components[key] as any;
-  comp.fields = { containerMaxWidth: containerMaxWidthField, ...comp.fields };
-  comp.defaultProps = { containerMaxWidth: "", ...comp.defaultProps };
-  comp.render = withContainer(comp.render);
+  comp.fields = {
+    backgroundColor: backgroundColorField,
+    containerMaxWidth: containerMaxWidthField,
+    ...comp.fields,
+  };
+  comp.defaultProps = {
+    backgroundColor: "",
+    containerMaxWidth: "",
+    ...comp.defaultProps,
+  };
+  // Wrap order: backgroundColor (outermost) → containerMaxWidth → component
+  comp.render = withBackgroundColor(withContainer(comp.render));
 }
