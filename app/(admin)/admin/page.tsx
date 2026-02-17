@@ -3,6 +3,7 @@ import { getSupabaseClient, transformLandingPage } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Settings2Icon } from "lucide-react";
 
 export default async function AdminPage() {
   const supabase = await getSupabaseClient();
@@ -67,6 +68,11 @@ export default async function AdminPage() {
                       >
                         Preview
                       </a>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild className="px-2.5">
+                      <Link href={`/admin/settings/${lp.slug}`} title="Settings">
+                        <Settings2Icon className="w-4 h-4" />
+                      </Link>
                     </Button>
                   </div>
                 </CardContent>

@@ -63,14 +63,15 @@ export async function PUT(
   try {
     const { slug } = await params;
     const body = await request.json();
-    const { title, data, checkoutUrl } = body;
+    const { title, data, checkoutUrl, slug: newSlug } = body;
 
     const supabase = await getSupabaseClient();
 
     const updateData: any = {};
-    if (title) updateData.title = title;
-    if (data) updateData.data = data; // No JSON.stringify
+    if (title !== undefined) updateData.title = title;
+    if (data !== undefined) updateData.data = data;
     if (checkoutUrl !== undefined) updateData.checkout_url = checkoutUrl;
+    if (newSlug !== undefined) updateData.slug = newSlug;
 
     const { data: landingPage, error } = await supabase
       .from('landing_pages')
@@ -80,10 +81,16 @@ export async function PUT(
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') { // Not found
+      if (error.code === 'PGRST116') {
         return NextResponse.json(
           { error: "Landing page not found" },
           { status: 404 }
+        );
+      }
+      if (error.code === '23505') {
+        return NextResponse.json(
+          { error: "A page with this slug already exists" },
+          { status: 409 }
         );
       }
       throw error;
